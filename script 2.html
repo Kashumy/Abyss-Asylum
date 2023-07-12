@@ -106,14 +106,14 @@ var collectedceystal=0;
   const loader = new THREE.TextureLoader();
   const loader2 = new THREE.TextureLoader();
   
-  var floortexture = loader.load('/grass.png', function(texture) {
+  var floortexture = loader.load('./grass.png', function(texture) {
   
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.offset.set(0, 0);
     texture.repeat.set(100, 100);
   
   });
-  var leaves = loader2.load('/leaves.png', function(texture) {
+  var leaves = loader2.load('./leaves.png', function(texture) {
   
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.offset.set(0, 0);
