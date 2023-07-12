@@ -1,0 +1,658 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+<script>
+      window.addEventListener("orientationchange", function() {
+        location.reload();
+      });
+</script>
+<html>
+
+<p style="position :fixed ; top :0; right :0; color :white ;" id="fps"></p>
+  <div id="buttons">
+<div class="nulljse" ></div>
+<div class="btnere" id="bg" >&uparrow;</div>
+<div class="nulljse" ></div>
+<div class="btnere" >&leftarrow;</div>
+<div class="btnere" id="bb">&downarrow;</div>
+<div class="btnere" id="br">&rightarrow;</div>
+  </div>
+  <div class="btnere" id="bj">JMP</div>
+    <div class="btnere" onclick="document.documentElement.classList.toggle('cha')" id="bfl">FL</div>
+  <style>#buttons{ position :absolute ;bottom: 10px;width :180px; }.btnere{ display  :flex ;float :left ;margin :2px;justify-content :center ;align-items :center ;width :50px;height :50px;font-size :20px;background :#1A1A1A; color: #D0D0D0}.btnere:active { background :#484848; }.nulljse{display :flex;float :left;margin :2px;justify-content :center;align-items :center;width :50px;height :50px; font-size :20px;background :#1A1A1A00;color: #D0D0D000;}#bj{
+    position :fixed ; bottom :10px; right: 20px;
+  }
+  #bfl{
+    position :fixed ; bottom :80px; right: 20px;
+  }
+  .cha{
+    filter :url('#ca');
+  }
+  html{
+    background :black ;
+    position :fixed ;
+  }
+  .animate{
+    position :relative ;
+    animation: 1s anim infinite ;
+    z-index :-2;
+  }
+
+  @keyframes anim{
+    0%{
+      transform:translate(-12px,0) 
+      
+    }
+    50% {
+      transform: translate(12px, 0);
+      
+    }
+    100% {
+          transform: translate(-12px, 0)
+        }
+  }
+  </style>
+
+<body id="all" >
+<canvas  ontouchstart="ts(e)" onclick="document.documentElement.requestFullscreen()" ontouchmove="myFunction(event)" id="scene"></canvas>
+<script src="./three.js"></script>
+<!--project script -->
+<script>
+var collectedceystal=0;
+  let addcode = `
+    <style>
+      * {
+        margin: 0;
+        user-select :none ;
+      }
+      #scene {
+        background: blue;
+      }
+    </style>
+  `
+  document.querySelector('canvas').innerHTML += addcode;
+
+  var canv = document.getElementById("scene");
+  // create the scene
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#000000'); // black background
+  scene.fog = new THREE.FogExp2(0x000000, 0.006);
+
+// Tworzenie mgły
+  // scene.fog = new THREE.FogExp2(0x000000, 0.2); // Alternatywnie, można użyć FogExp2 dla bardziej intensywnego efektu mgły
+  
+  // 
+  var go = 0;
+  var back = 0;
+  var jumping = false;
+  var velocityY = 0;
+
+  // create the camera
+  const camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 300);
+  camera.position.z = 5;
+
+  // create the renderer
+  let renderer = new THREE.WebGLRenderer({ canvas: canv, antialias: true, alpha: true });
+  renderer.shadowMap.enabled = true;
+    	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+  renderer.shadowMap.enabled = true;
+  document.body.appendChild(renderer.domElement);
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  // create the cube
+  const loader = new THREE.TextureLoader();
+  const loader2 = new THREE.TextureLoader();
+  
+  var floortexture = loader.load('/grass.png', function(texture) {
+  
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.offset.set(0, 0);
+    texture.repeat.set(100, 100);
+  
+  });
+  var leaves = loader2.load('/leaves.png', function(texture) {
+  
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.offset.set(0, 0);
+    texture.repeat.set(3, 3);
+  
+  });
+  const geometry = new THREE.BoxGeometry();
+  const material = new THREE.MeshStandardMaterial({ color: 0x00ff00, map: floortexture });
+  const cube = new THREE.Mesh(geometry, material);
+  cube.position.y -= 3;
+  
+  cube.receiveShadow = true;
+  cube.scale.x = 2000;
+  cube.scale.z = 2000;
+  scene.add(cube);
+var playerh=8;
+const sunlight = new THREE.DirectionalLight(0xff0000f, 0.1);
+sunlight.position.set(100, 2000, -100); // Pozycja światła słonecznego
+sunlight.target.position.set(0, 0, 0);
+		
+sunlight.castShadow = true; // Włączenie generowania cieni przez światło słoneczne
+sunlight.shadow.mapSize.width = 10024;
+sunlight.shadow.mapSize.height = 10024;
+sunlight.shadow.camera.near = 0.9;
+sunlight.shadow.camera.far = 100;
+
+scene.add(sunlight);
+var speed=0;
+// Konfiguracja cieni dla światła słonecznego
+sunlight.shadow.mapSize.width = 10024;
+sunlight.shadow.mapSize.height = 10024;
+sunlight.shadow.camera.near = 0.9;
+sunlight.shadow.camera.far = 100;
+
+  const light = new THREE.PointLight(0xffffff, 1, 2);
+  light.position.set(0, 10, 0);
+  light.castShadow = true;
+  scene.add(light);
+
+  const light2 = new THREE.PointLight(0xffffff, 1, 58);
+  const amb = new THREE.AmbientLight(0xffffff, 0) ;
+  scene.add(amb);
+  light2.position.set(0, 20, 5);
+  
+var tm=0;
+
+var pointLight2 = new THREE.PointLight(0xffffff, 0.5);
+pointLight2.scale.z=100;
+
+scene.add(pointLight2);
+
+ var crystalgm = new THREE.BoxGeometry(2,500,2);
+ const crystalmt = new THREE.MeshBasicMaterial({ color: 0xff00ff, });
+const mashcrystal = new THREE.Mesh(crystalgm, crystalmt);
+var x_random =0;
+var z_random =0;
+function pozcrystal(){
+
+x_random = (Math.random()*600 )-Math.random()*600
+z_random = (Math.random()*600 )-Math.random()*600
+
+if(x_random > -400 && x_random < 400 && z_random > -400 && z_random < 500 ){
+  
+  pozcrystal()
+}
+
+mashcrystal.position.x = x_random 
+mashcrystal.position.y =2
+mashcrystal.position.z = z_random
+}
+scene.add(mashcrystal)
+pozcrystal()
+  function animate() {
+    var lightDirection = new THREE.Vector3(0, -2, 10);
+  lightDirection.applyQuaternion(camera.quaternion); // Obrót wektora zgodnie z rotacją kamery
+  
+if(camera.position.y > 0 && camera.position.y < 40 && camera.position.x > x_random  && camera.position.x < x_random + 20  && camera.position.z > z_random && camera.position.z < z_random + 20){
+  collectedceystal=1;
+  console.log(collectedceystal)
+}
+
+  // Przesunięcie pozycji punktowego światła o 5 jednostek w kierunku patrzenia kamery
+  var lightOffset = lightDirection.clone().multiplyScalar(-5);
+  pointLight2.position.copy(camera.position).add(lightOffset);
+
+
+    requestAnimationFrame(animate);
+    if (go === 1) {
+  const direction = new THREE.Vector3();
+  camera.getWorldDirection(direction);
+  direction.normalize();
+  camera.translateY(velocityY);
+  const movementSpeed = 0.1 + speed;
+  camera.position.add(direction.multiplyScalar(-movementSpeed));
+  speed -= 0.02;
+  if(speed<-0.5){
+  speed +=0.02;
+}
+
+}
+
+
+
+    if (back === 1) {
+      camera.translateZ(0.1 + speed);
+      speed += 0.02;
+      camera.translateY(velocityY);
+ if(speed>0.5){
+  speed -=0.02;
+}
+
+    }
+    velocityY -= 0.02;
+    if (jumping) {
+      velocityY -= 0.01;
+      camera.translateY(velocityY);
+      
+    }
+if (camera.position.y < 0 + playerh ) {
+  camera.position.y = 0 + playerh;
+  jumping = false;
+}
+    renderer.render(scene, camera);
+  }
+  animate();
+  camera.rotation.order = 'YXZ';
+
+  for (let i = 0; i < 1000; i++) {
+    makeMesh();
+  }
+
+  function makeMesh() {
+    mw = Math.random() * 40 + 15;
+    mh = 20;
+    mm = Math.random() * 50 + 30;
+    var mesh = new THREE.Mesh(new THREE.BoxGeometry(mw, mh, mm), new THREE.MeshStandardMaterial({ color: '#FFFFFF' }));
+    mesh.position.set(rand() + 200, 200, rand() + 200);
+    scene.add(mesh);
+    
+
+    function rand() {
+      return (Math.random() - 0.5) * 3000;
+    }
+  }
+
+  var fps = document.getElementById("fps");
+  var startTime = Date.now();
+  var frame = 0;
+
+  function tick() {
+    var time = Date.now();
+    frame++;
+    if (time - startTime > 1000) {
+      fps.innerHTML = (frame / ((time - startTime) / 1000)).toFixed(1);
+      startTime = time;
+      frame = 0;
+    }
+    
+    window.requestAnimationFrame(tick);
+    
+  }
+  setTimeout(tick,200)
+
+  var cx = 0;
+  var cy = 0;
+
+  function ts(e) {
+    cx = e.touches[0].clientX;
+    cy = e.touches[0].clientY;
+  }
+
+  function myFunction(event) {
+    var element = document;
+    xt = event.touches[0].clientX;
+    yt = event.touches[0].clientY;
+
+    if (xt > innerWidth - 300 + cx) {
+      camera.rotation.y -= 0.02;
+    }
+    if (xt < innerWidth - 200 - cx) {
+      camera.rotation.y += 0.02;
+    }
+    if (yt < innerHeight - 200 + cy) {
+      camera.rotation.x += 0.02;
+    }
+    if (yt > innerHeight - 250 - cy) {
+      camera.rotation.x -= 0.02;
+    }
+  }
+
+  var isDragging = false;
+  var previousMousePosition = { x: 0, y: 0 };
+
+  document.addEventListener('mousedown', function(event) {
+    isDragging = true;
+    previousMousePosition = { x: event.clientX, y: event.clientY };
+  });
+
+  document.addEventListener('mouseup', function(event) {
+    isDragging = false;
+  });
+
+  document.addEventListener('mousemove', function(event) {
+    if (!isDragging) {
+      return;
+    }
+
+    var deltaX = event.clientX - previousMousePosition.x;
+    var deltaY = event.clientY - previousMousePosition.y;
+
+    camera.rotation.y -= deltaX * 0.01;
+    camera.rotation.x -= deltaY * 0.01;
+
+    previousMousePosition = { x: event.clientX, y: event.clientY };
+  });
+
+  setTimeout(j, 200);
+
+  function j() {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+    renderer.shadowMap.enabled = true;
+    document.body.appendChild(renderer.domElement);
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    setTimeout(j, 2000);
+  }
+
+  var buttonGo = document.getElementById('bg')
+  
+  buttonGo.addEventListener('ontouchstart' in document ? 'touchstart' : 'mousedown', e => {
+    go = 1;
+    speed = 0;
+    document.getElementById('scene').classList.add('animate')
+  });
+  buttonGo.addEventListener('ontouchend' in document ? 'touchend' : 'mouseup', e => {
+    
+    go = 0;
+    document.getElementById('scene').classList.remove('animate')
+  });
+  
+
+  var buttonBack = document.getElementById('bb');
+  
+  buttonBack.addEventListener('ontouchstart' in document ? 'touchstart' : 'mousedown', e => {
+    back = 1;
+  });
+  buttonBack.addEventListener('ontouchend' in document ? 'touchend' : 'mouseup', e => {
+    speed = 0;
+    back = 0;
+  });
+  
+
+  var buttonJump = document.getElementById('bj')
+  
+  buttonJump.addEventListener('ontouchstart' in document ? 'touchstart' : 'mousedown', e => {
+    if (!jumping) {
+      if(speed>-2){
+      speed-=1;
+      setTimeout(function (){
+        speed=-1;
+      },1000)
+      }else {
+        speed=0;
+      }
+      jumping = true ;
+      velocityY = 0.5;
+    }
+  });
+  
+  
+  // Funkcja generująca drzewo
+function generateTree() {
+  const trunkGeometry = new THREE.CylinderGeometry(3, 3, 60, 8); // Graniastosłup w kształcie koła jako kłoda
+  const trunkMaterial = new THREE.MeshStandardMaterial({ color: '#8B4513' });
+  const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+
+  const leavesGeometry = new THREE.ConeGeometry(20, 40, 30); // Stożek reprezentujący liście
+  const leavesMaterial = new THREE.MeshStandardMaterial({ color: '#006400' , map :leaves});
+const brightness = 2; // Wartość większa od 1 zwiększy jasność, mniejsza niż 1 zmniejszy jasność
+leavesMaterial.color.multiplyScalar(brightness)
+  const leaves1 = new THREE.Mesh(leavesGeometry, leavesMaterial);
+  const leaves2 = new THREE.Mesh(leavesGeometry, leavesMaterial);
+  const leaves3 = new THREE.Mesh(leavesGeometry, leavesMaterial);
+
+  const x = Math.random() * 1000 - 500; // Losowa pozycja x
+  const z = Math.random() * 1000 - 500; // Losowa pozycja z
+  const y = getHeightAtPosition(x, z); // Wysokość drzewa
+  
+  trunk.castShadow = true;
+  leaves1.castShadow = true;
+  leaves2.castShadow = true;
+  leaves3.castShadow = true;
+  
+  trunk.position.set(x, y, z);
+  leaves1.position.set(x, y + 40, z);
+  leaves2.position.set(x , y + 55, z);
+  leaves3.position.set(x , y + 70, z);
+
+  scene.add(trunk);
+  scene.add(leaves1);
+  scene.add(leaves2);
+  scene.add(leaves3);
+}
+
+renderer.shadowMap.enabled = true;
+
+
+// Ustawienie cieni dla świateł w scenie
+
+// Funkcja zwracająca wysokość terenu w danej lokalizacji
+function getHeightAtPosition(x, z) {
+  // Tutaj można umieścić kod do uzyskania wysokości terenu w danej lokalizacji
+  // Może to być na przykład wywołanie API, obliczenia na podstawie danych itp.
+  // W tym przykładzie zwracamy losową wysokość z przedziału od -5 do 5.
+  return Math.random() * 2 + 0;
+}
+
+// Generowanie drzew
+for (let i = 0; i < 100; i++) {
+  generateTree();
+}
+
+  
+</script>
+<style>
+  			.window {
+  			  
+				position: fixed ;
+				width: 200px;
+				height: calc(10vw + 20vh);
+				background-color: #E0E0E0;
+				border: 1px solid #8C8C8C;
+				overflow: auto;
+				box-shadow: 12px 12px 0px rgba(12, 0, 92, 0.4);
+				min-width: 100px;
+				max-width: 300px;
+				min-height: 100px;
+				max-height: 300px;
+			}
+
+			.window-no-res {
+				position: absolute;
+				width: 200px;
+				height: 150px;
+				background-color: #E0E0E0;
+				border: 1px solid #8C8C8C;
+				overflow: auto;
+				min-width: 10vw;
+				max-width: 3000vw;
+				min-height: 10vh;
+				max-height: 3000vh;
+			}
+
+			.window-header {
+				position: relative;
+
+				height: 20px;
+				width: 100%;
+				background-color: #D3D3D3;
+				cursor: move;
+				touch-action: none;
+			}
+			.window-header2 {
+			  position: relative;
+
+			  height: 20px;
+			  width: 100%;
+			  background-color: #578FC2;
+			  cursor: move;
+			  touch-action: none;
+			}
+			* {
+				font-size: 15px;
+				/*font-family: "Courier New";*/
+			}
+
+			.window-title {
+				margin: 0;
+				padding: 4px;
+			}
+
+			.window-controls {
+				position: absolute;
+				top: 0;
+				right: 0;
+				width: 20px;
+				height: 20px;
+
+				background-color: #D32F2F;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				cursor: pointer;
+				color: white;
+			}
+
+			.window-controls:active {
+				background: #FF0000;
+			}
+
+			.window-controls-left {
+				right: 20px;
+				background-color: #1976D2;
+			}
+</style>
+<script>
+  			function openWindow(windowId) {
+				document.getElementById(windowId).style.display = 'block';
+			}
+function wintodown(windowId) {
+  
+  document.getElementById(windowId).style.top = '97vh';
+  document.getElementById(windowId).style.left = '0px';
+}
+			function closeWindow(windowId) {
+				document.getElementById(windowId).style.display = 'none';
+			}
+			onload = (function() {
+				document.getElementById('imageDisplay').style.display = "none "
+			})
+
+			function dragTouchStart(e, windowId) {
+				e = e || window.event;
+				e.preventDefault();
+				var elmnt = document.getElementById(windowId);
+				elmnt.setAttribute("data-pos1", e.touches[0].clientX - elmnt.offsetLeft);
+				elmnt.setAttribute("data-pos2", e.touches[0].clientY - elmnt.offsetTop);
+			}
+
+			function dragTouchMove(e, windowId) {
+				e = e || window.event;
+				e.preventDefault();
+				var elmnt = document.getElementById(windowId);
+				var pos1 = parseInt(elmnt.getAttribute("data-pos1")) || 0;
+				var pos2 = parseInt(elmnt.getAttribute("data-pos2")) || 0;
+				var posX = e.touches[0].clientX - pos1;
+				var posY = e.touches[0].clientY - pos2;
+				elmnt.style.top = posY + "px";
+				elmnt.style.left = posX + "px";
+			}
+
+</script>
+<script>
+  function cha(){
+    document.querySelector('html').classList.add('cha')
+  }
+  function nocha() {
+    document.querySelector('html').classList.remove('cha')
+  }
+</script><div id="window12" class="window" style="top: 100px; left: 100px; display: block ; z-index :9999999;background-color: black ; color: white ; font-size: 40px" data-pos1="0" data-pos2="0">
+  <div class="window-header2" ontouchstart="dragTouchStart(event, 'window12')" ontouchmove="dragTouchMove(event, 'window12')">
+    <strong style="color: black;">Pro Tip</strong>
+    <div class="window-controls" onclick="closeWindow('window12')">x</div>
+    <div class="window-controls window-controls-left" onclick="toggleFullscreen('window12')"></div>
+  </div>
+  <div class="term124">
+    <br>
+<h1 style="font-size:140%;" >In this forest you should find a beacon, it's around -600 to 600 x when you walk into it</h1> <br>
+  
+</pre>
+
+<br><br>&nbsp;&nbsp;<button onclick="closeWindow('window12')" class="button" >Close</button>
+
+  </div>
+  <style>
+          .button {
+            padding: 10px 20px;
+            background-color: #FFB55E;
+            color: #14181B;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .button:hover {
+            background-color: #23CE6B;
+        }
+
+    .term124 {
+      padding :10px;
+      background: black ;
+      overflow: hidden;
+      overflow: scroll;
+      height : 86%;
+      color: white ;
+    }
+
+    @media (max-width: 768px) {
+      #contentPre,
+      #projektTextarea {
+        width: 90%;
+      }
+    }
+
+    @media (min-width: 769px) {
+      #contentPre,
+      #projektTextarea {
+        width: 100%;
+      }
+    }
+  </style>
+
+</div>
+<script>
+  const sliderElement = document.getElementById('209jfjennr');
+  const sliderValueElement = document.getElementById('hfnrjfdk3920wsk');
+  const toggleElement = document.getElementById('npue239ufp');
+  const toggleValueElement = document.getElementById('ndsejdnjfnfsd');
+
+  sliderElement.addEventListener('input', function() {
+    sliderValueElement.innerText = this.value;
+  });
+
+  toggleElement.addEventListener('change', function() {
+    toggleValueElement.innerText = this.checked ? '1' : '0';
+  });
+</script>
+
+<svg width="0" height="0">
+  <filter id="ca">
+    <feColorMatrix type="matrix" 
+      result="red_"             
+      values="4 0 0 0 0
+              0 0 0 0 0 
+              0 0 0 0 0 
+              0 0 0 1 0"/>
+    <feOffset in="red_" dx="0.8" dy="0" result="red"/>
+    <feColorMatrix type="matrix" 
+      in="SourceGraphic"             
+      result="blue_"             
+      values="0 0 0 0 0
+              0 3 0 0 0 
+              0 0 10 0 0 
+              0 0 0 1 0"/>
+    <feOffset in="blue_" dx="-0.8" dy="0" result="blue"/>    
+    <feBlend mode="screen" in="red" in2="blue"/>
+
+  </filter>
+</svg>
